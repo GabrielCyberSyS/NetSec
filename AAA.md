@@ -65,6 +65,125 @@ Contabilidade AAA
 
 
 
+7.3.4 Autenticação TACACS+
+O TACACS+ é um aprimoramento da Cisco ao protocolo TACACS original. Apesar de seu nome, TACACS+ é um protocolo inteiramente novo que seja incompatível com toda a versão anterior do TACACS. O TACACS+ é apoiado pela família Cisco de roteadores e servidores de acesso.
+
+O TACACS+ fornece serviços separados do AAA. Separar os serviços AAA fornece a flexibilidade na implementação porque é possível usar o TACACS+ para a autorização e a contabilidade ao usar um outro método de autenticação.
+
+As extensões ao protocolo TACACS+ fornecem mais tipos de pedidos de autenticação e de códigos de resposta do que estavam na especificação original TACACS. O TACACS+ oferece suporte a vários protocolos, como o IP e o AppleTalk legado. A operação normal do TACACS+ criptografa todo o corpo do pacote para comunicações mais seguras e utiliza a porta TCP 49.
+
+Clique em Reproduzir na figura para visualizar o processo de autenticação TACACS+.
+
+Processo para a autenticação TACACS+
+![image](https://github.com/user-attachments/assets/8b7dfb73-2dcb-4e21-98db-9ef73c50be2b)
+
+
+
+7.3.5 Autenticação RADIUS
+RADIUS, que foi desenvolvido pela Livingston Enterprises, é um protocolo AAA padrão IETF aberto para aplicações como acesso à rede ou mobilidade IP. O RADIUS funciona em situações locais e em roaming e é comumente usado para fins contábeis. RADIUS é definido atualmente pelas RFCs 2865, 2866, 2867, 2868, 3162 e 6911.
+
+O protocolo RADIUS oculta senhas durante a transmissão, mesmo com o Protocolo de Autenticação de Senha (PAP), usando uma operação bastante complexa que envolva o hashing do Message Digest 5 (MD5) e um segredo compartilhado. Contudo, o resto do pacote é enviado em texto simples.
+
+O RADIUS combina autenticação e autorização como um processo. Quando um usuário é autenticado, esse usuário também é autorizado. O RADIUS usa a porta UDP 1645 ou 1812 para autenticação e a porta UDP 1646 ou 1813 para contabilidade.
+
+RADIUS é amplamente utilizado por provedores de serviços VoIP. Ele passa as credenciais de login de um terminal SIP, como um telefone de banda larga, para um registrador SIP usando autenticação digest e, em seguida, para um servidor RADIUS usando RADIUS. O RADIUS também é um protocolo de autenticação comum que seja utilizado pelo padrão de segurança 802.1X.
+
+Clique em Reproduzir na figura para visualizar um processo de autenticação RADIUS.
+
+Processo para autenticação RADIUS
+
+
+![image](https://github.com/user-attachments/assets/9299fd55-9e77-401f-b28a-8a584eeb920f)
+
+
+7.4.2 Configurar servidores TACACS+
+Os protocolos TACACS e RADIUS são usados para a comunicação entre os clientes e os servidores de segurança AAA. A figura exibe a topologia de referência AAA para este tópico.
+
+Topologia de referência AAA baseada em servidor
+
+![image](https://github.com/user-attachments/assets/4553e4dc-3517-4c89-ac81-29401a985f8c)
+
+
+Para configurar um server TACACS+, permita globalmente o AAA usando comando aaa new-model. Em seguida, use o comando tacacs server name. No modo de configuração do servidor TACACS+, configurar o endereço IPv4 do servidor TACACS+ usando comando address ipv4. O comando address ipv4 permite a opção modificar a porta de autenticação e a porta de contabilidade.x Você também pode especificar um endereço IPv6 com o comando address ipv6 ipv6-address.
+
+Em seguida, use o comando single-connection para melhorar o desempenho do TCP mantendo uma única conexão TCP durante a vida útil da sessão. Caso contrário, por padrão, uma conexão TCP é aberta e fechada para cada sessão. Se necessário, os servidores TACACS+ múltiplos podem ser identificados incorporando seus endereços IPv4 respectivos usando comando tacacs server name .
+
+O comando key key é usado para configurar a chave secreta compartilhada para cifrar a transferência de dados entre o servidor TACACS+ e o roteador habilitado para AAA. Esta chave deve ser configurada exatamente da mesma maneira no roteador e no server TACACS+.
+
+O exemplo indica uma configuração do servidor TACACS+ da amostra.
+
+R1(config)# aaa new-model
+R1(config)#
+R1(config)# tacacs server Server-T
+R1(config-server-tacacs)# address ipv4 192.168.1.101
+R1(config-server-tacacs)# single-connection
+R1(config-server-tacacs)# key TACACS-Pa55w0rd
+R1(config-server-tacacs)# exit
+R1(config)#
+7.4.3 Configurar servidores RADIUS
+Para configurar um servidor RADIUS, use o comando radius server name. Isso coloca você no modo de configuração do servidor Radius.
+
+Como o RADIUS usa UDP, não há equivalente a palavra-chave single-connection. Se necessário, vários servidores RADIUS podem ser identificados inserindo um comando radius server name para cada servidor.
+
+No modo de configuração do servidor Radius, configurar o endereço IPv4 do servidor Radius usando comando address ipv4 ipv4-address . Você também pode especificar um endereço IPv6 com o comando address ipv6 ipv6-address.
+
+Por padrão, os roteadores Cisco usam a porta 1645 para autenticação e a porta 1646 para a contabilidade. Contudo, a IANA reservou as portas 1812 para a porta de autenticação RADIUS e 1813 para a porta de contabilidade RADIUS. É importante certificar-se de que estas portas combinam entre o roteador Cisco e o servidor Radius.
+
+Para configurar a chave secreta compartilhada para criptografar a senha, use o comando key. Esta chave deve ser configurada exatamente da mesma maneira no roteador e no servidor Radius.
+
+O exemplo indica uma configuração do servidor RADIUS de exemplo.
+
+R1(config)# aaa new-model
+R1(config)#
+R1(config)# radius server SERVER-R
+R1(config-radius-server)# address ipv4 192.168.1.100 auth-port 1812 acct-port 1813
+R1(config-radius-server)# key RADIUS-Pa55w0rd
+R1(config-radius-server)# exit
+R1(config)#
+
+
+
+
+7.4.4 Autenticar para os comandos de configuração do servidor AAA
+Quando os servidores de segurança AAA tiverem sido identificados, os server devem ser incluídos na lista do método do comando aaa authentication login. Os servidores AAA são identificados usando as palavras-chave group tacacs+ ou group radius. Consulte o exemplo para ver as opções de sintaxe de comando disponíveis com o comando aaa authentication login.
+
+R1(config)# aaa authentication login default ?
+  cache          Use Cached-group
+  enable         Use enable password for authentication.
+  group          Use Server-group
+  krb5           Use Kerberos 5 authentication.
+  krb5-telnet    Allow logins only if already authenticated via Kerberos V
+                 Telnet.
+  line           Use line password for authentication.
+  local          Use local username authentication.
+  local-case     Use case-sensitive local username authentication.
+  none           NO authentication.
+  passwd-expiry  enable the login list to provide password aging support
+ 
+R1(config)# aaa authentication login default group ?
+  WORD     Server-group name
+  ldap     Use list of all LDAP hosts.
+  radius   Use list of all Radius hosts.
+  tacacs+  Use list of all Tacacs+ hosts.
+Para configurar uma lista de métodos para que o início de uma sessão padrão autentique primeiramente usando um servidor TACACS+, segundo com um servidor RADIUS, e finalmente com um base de dados de nome de usuário local, especifique a ordem com comando aaa authentication login default, conforme destacado no exemplo. É importante perceber que R1 só tentará autenticar usando RADIUS se o servidor TACACS+ não estiver acessível. Da mesma forma, o R1 tentaria somente autenticar usando o base de dados local se os servidores TACACS+ e RADIUS estão indisponíveis
+
+R1(config)# aaa new-model
+R1(config)#
+R1(config)# tacacs server Server-T
+R1(config-server-tacacs)# address ipv4 192.168.1.100
+R1(config-server-tacacs)# single-connection
+R1(config-server-tacacs)# key TACACS-Pa55w0rd
+R1(config-server-tacacs)# exit
+R1(config)#
+R1(config)# radius server SERVER-R
+R1(config-radius-server)# address ipv4 192.168.1.101 auth-port 1812 acct-port 1813
+R1(config-radius-server)# key RADIUS-Pa55w0rd
+R1(config-radius-server)# exit
+R1(config)#
+R1(config)# aaa authentication login default group tacacs+ group radius local-case
+
+
+
 
 
 
